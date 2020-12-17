@@ -1,0 +1,8 @@
+build/*
+dist/*
+html/*
+latex/*
+*.db
+*.egg*
+*SFConflict *
+*.zip
