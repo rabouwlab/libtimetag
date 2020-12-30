@@ -1,9 +1,16 @@
 import setuptools
 from setuptools import setup, Extension, find_packages
+from sys import platform
+
+extra_compile_args =['-std=c++11']
+
+if platform == "darwin":
+    # Mac OS
+    extra_compile_args.append('-stdlib=libc++')
 
 module1 = Extension('_libtimetag',
                     sources = ['./src/algos.cpp', './src/getline.cpp', './src/python_bindings.cpp', './src/sstt_file.cpp', './src/sstt_file2.cpp'], 
-                    extra_compile_args=['-std=c++11','-stdlib=libc++'],
+                    extra_compile_args=extra_compile_args,
                     include_dirs = ['.','./include'],
 					define_macros=[('LIBTIMETAG_COMPILE_PYTHON', None), ('BUILDING_LIBTIMETAG', None)])
 
