@@ -11,7 +11,7 @@ Simply install from pypi using pip:
 
 	
 # Usage as Python module
-Please see the [python notebook](https://github.com/rabouwlab/libtimetag/examples/libtimetag_example-notebook.ipynb).
+Please see the [python notebook](https://github.com/rabouwlab/libtimetag/blob/master/examples/libtimetag_example-notebook.ipynb).
 
 
 # Installing as C++ library

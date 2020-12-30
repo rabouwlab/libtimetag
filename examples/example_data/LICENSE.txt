@@ -1,5 +1,0 @@
-If you use these data, please cite:
-
-Stijn O.M. Hinterding, Sander J.W. Vonk, Elleke J. van Harten, Freddy T. Rabouw, J. Phys. Chem. Lett. (2020), 11, 4755-4761. https://doi.org/10.1021/acs.jpclett.0c01250
-
-Please see this publication for details on the experimental conditions.
