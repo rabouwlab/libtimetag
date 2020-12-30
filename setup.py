@@ -23,7 +23,7 @@ install_requires = [
     ]
     
 setup (name = 'libtimetag',
-       version = '0.9',
+       version = '0.9.1',
        author='Stijn Hinterding',
        author_email='git@stijnhinterding.nl',
        description = 'Library for storage and processing of time-correlated single-photon counting (TCSPC) data.',
