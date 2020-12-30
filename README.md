@@ -15,7 +15,7 @@ Please see the [python notebook](https://github.com/rabouwlab/libtimetag/blob/ma
 
 
 # Installing as C++ library
-Libtimetag was developed on Windows using [MSYS2](www.msys2.org) (more specifically, the MSYS2 MinGW 64-bit toolchain). The following should work under Windows (MSYS2), and Linux-like OS's. Inside a shell, situated in the project root directory, execute:
+Libtimetag was developed on Windows using [MSYS2](https://www.msys2.org) (more specifically, the MSYS2 MinGW 64-bit toolchain). The following should work under Windows (MSYS2), and Linux-like OS's. Inside a shell, situated in the project root directory, execute:
 
 	mkdir build
 	cd build
