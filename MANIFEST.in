@@ -1,3 +1,4 @@
 include LICENSE
+recursive-include src *.h
 recursive-include include *.h
 recursive-include pybind11 *.h 

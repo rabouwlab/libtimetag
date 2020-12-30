@@ -5,4 +5,4 @@ latex/*
 *.db
 *.egg*
 *SFConflict *
-.ipynb_checkpoints/*
+*.ipynb_checkpoints*
