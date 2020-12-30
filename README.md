@@ -5,18 +5,14 @@ The library was made for two use cases: (i) as a supporting library for other (C
 
 
 # Installing as Python module
-## Windows
-Make sure you have a C++ compiler installed. If you have Visual Studio installed you should be good. Don't have a clue? Install the [Visual C++ 2015 Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126&fixForIE=.exe). You are likely to run into plenty of errors along the way -- this document should be updated to give a more detailed explanation of the installation process.
+Simply install from pypi using pip:
 
-While situated inside the project root directory, execute the following command (note: if you are using Anaconda, you should execute this command from inside the [Anaconda Prompt](https://docs.anaconda.com/anaconda/user-guide/getting-started/):
+    pip install libtimetag
 
-	python setup.py install
+	
+# Usage as Python module
+Please see the [python notebook](https://github.com/rabouwlab/libtimetag/examples/libtimetag_example-notebook.ipynb).
 
-## Linux/MacOS/...
-This project was developed on Windows, but known to work on MacOS as well.
-While situated inside the project root directory, execute:
-
-	python setup.py install
 
 # Installing as C++ library
 Libtimetag was developed on Windows using [MSYS2](www.msys2.org) (more specifically, the MSYS2 MinGW 64-bit toolchain). The following should work under Windows (MSYS2), and Linux-like OS's. Inside a shell, situated in the project root directory, execute:
@@ -27,11 +23,10 @@ Libtimetag was developed on Windows using [MSYS2](www.msys2.org) (more specifica
 	make
 	make install
 
-# Basic usage as Python module
-(To be written)
-
+	
 # Acknowledgements
 This work was supported by The Netherlands Center for Multiscale Catalytic Energy Conversion (MCEC), an NWO Gravitation Programme funded by the Ministry of Education, Culture and Science of the government of The Netherlands.
+
 
 # License
 This project is licensed under the MIT license. See the LICENSE file in the project root.

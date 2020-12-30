@@ -1,0 +1,24 @@
+Simple Small Time Tagged (V2)
+# This file was automatically generated, do not alter its contents.
+
+
+
+
+
+
+EXPERIMENT_HEADER
+Time_unit_seconds	device_type	experiment_start_timestamp_UTC
+1.000000000000000e-012	qutag	2019-09-02T13:39:24Z
+
+
+
+
+
+
+CHANNEL_HEADER
+ChannelID	Filename	NumPhotons	NumOverflows	Filesize	HardwareSyncDivider	AdditionalSyncDivider	TotalSyncDivider	IsPulsesChannel	HasPulsesChannel	CorrespondingPulsesChannel
+1	"QD02_r_1.sstt.c1"	737	285	4470	1	1	1	0	1	2	
+2	"QD02_r_1.sstt.c2"	302944	285	1817712	1	1000	1000	1	0	0	
+3	"QD02_r_1.sstt.c3"	2379926	285	14279604	1	1	1	0	1	2	
+4	"QD02_r_1.sstt.c4"	2276326	285	13658004	1	1	1	0	1	2	
+100	"QD02_r_1.sstt.c100"	0	0	18	1	1	1	0	0	0	

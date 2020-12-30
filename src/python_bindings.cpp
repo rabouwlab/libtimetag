@@ -23,47 +23,18 @@ namespace py = pybind11;
 
 typedef void destr(void);
 
-PYBIND11_MODULE(libtimetag, m) {
+PYBIND11_MODULE(_libtimetag, m) {
 
-    m.doc() = "Contains many useful functions related to Time-Correlated Single-Photon Counting experiments"; // optional
-
-    py::class_<channel_info>(m, "channel_info")
-            .def(py::init())
-            .def_readwrite("ID", &channel_info::ID)
-			.def_readwrite("n_photons", &channel_info::n_photons)
-            .def_readwrite("filename", &channel_info::filename);
-
-    m.def("get_sstt_info", [](const char *filename) {
-        int error = 0;
-        std::vector<channel_info> infos = get_sstt_info(filename, &error);
-
-        if (error == 1) {
-            throw std::runtime_error("Failed to open file '" + std::string(filename) + "'");
-        } else if (error == 2) {
-            throw std::runtime_error("Channel data in sstt file appears malformed");
-        } else if (error == 3) {
-            throw std::runtime_error("Could not find channel data in sstt file");
-        }
-
-        py::list ret;
-
-        for (uint64_t i = 0; i < infos.size(); i++) {
-            ret.append(infos[i]);
-        }
-
-        return ret;
-
-    }, "Obtain information on an *.sstt header file\n"
-       "\n"
-       "Parameters\n"
-       "----------\n"
-       "filepath : string\n"
-       "    path to the *.sstt file to open\n"
-       "\n"
-       "Returns\n"
-       "-------\n"
-       "channel_infos : array_like\n"
-       "    Return an array containing channel_info structs", py::arg("filepath"));
+    m.doc() = "Library for opening and processing Time-Correlated Single-Photon Counting data\n"
+			  "\n"
+			  "This module can open and process small simple time-tagged (SSTT) time-correlated\n"
+			  "single-photon counting (TCSPC) datasets, and also provides algorithms to process\n"
+			  "these data, such as fast cross-correlation functions.\n"
+			  "\n"
+			  "Data is most easily imported using the import_data() function, as this imports\n"
+			  "the data as well as the header information, and does basic pre-processing.\n"
+			  "More advanced use-cases may benefit from the read_sstt_data() and gen_micro_times()\n"
+			  "functions.";
 
     m.def("gen_micro_times", [](const py::array_t<int64_t,py::array::c_style|py::array::forcecast>& pulse_times,
           const py::array_t<int64_t,py::array::c_style|py::array::forcecast>& data_times,
@@ -96,16 +67,18 @@ PYBIND11_MODULE(libtimetag, m) {
 
 
         return py::array(ret_size, ret, capsule);
-    },"Generate micro timestamps (timestamps relative to a reference channel, e.g. laser pulses)\n"
+    },"Generate micro timestamps (timestamps relative to a reference channel)\n"
       "\n"
+	  "Note: if you use import_data() you will most likely not need this function\n"
+	  "\n"
       "Parameters\n"
       "----------\n"
       "ref_timestamps : array_like\n"
-      "     Array containing timestamps of the reference channel\n"
+      "     Array containing timestamps of the reference channel, e.g. the laser sync channel.\n"
       "data_timestamps : array_like\n"
-      "     Array containing timestamps of the channel of which the micro timestamps should be calculated\n"
+      "     Array containing timestamps of the channel for which the micro timestamps should be calculated\n"
       "total_sync_divider : positive integer\n"
-      "     The total sync divider, applied to the reference channel, during data acquisition. The sync divider\n"
+      "     The total sync divider that was applied to the reference channel during data acquisition. The sync divider\n"
       "     determines how many of the recorded events are discarded; where the ratio total_num_events/total_sync_divider\n"
       "     gives the number of events which are not discarded. For example: with a sync divider of unity, all events\n"
       "     are recorded; with a sync divider of 2, every other event is recorded; with a sync divider of 3, every\n"
@@ -114,7 +87,7 @@ PYBIND11_MODULE(libtimetag, m) {
       "Returns\n"
       "-------\n"
       "microtimestamps : array_type\n"
-      "     Return an array containing the micro timestamps, corresponding to the combination of the supplied reference\n"
+      "     Returns an array containing the micro timestamps, corresponding to the combination of the supplied reference\n"
       "     and data channel.",
         py::arg("ref_timestamps"), py::arg("data_timestamps"), py::arg("total_sync_divider"));
 
@@ -158,33 +131,41 @@ PYBIND11_MODULE(libtimetag, m) {
         py::array py_microtimes(microtimes->size(), microtimes->data(), capsule_micro);
 
         return py::make_tuple(py_macrotimes, py_microtimes,n_overflows);
-    },"Reads in data from a *.sstt.c* data file\n"
+    },"Reads in data from a single *.sstt.c* data file\n"
     "\n"
+	"Note: the import_data() function is generally more convenient to use.\n"
+	"\n"
     "Parameters\n"
     "----------\n"
     "filepath : string\n"
     "     Path to the *.sstt.c* data file to open.\n"
-    "n_photons_to_skip : uint64\n"
+    "n_photons_to_skip : uint64 (optional)\n"
     "     The number of photon events to skip when\n"
-    "     reading this file. Usefule when reading in\n"
+    "     reading this file. Useful when reading in\n"
     "     a file which is still being updated. Be\n"
     "     careful to also specify the correct number\n"
-    "     of overflow events!\n"
-    "n_overflow_events : uint64_t\n"
+    "     of overflow events.\n"
+    "n_overflow_events : uint64_t (optional)\n"
     "     The number of overflow events already\n"
     "     encountered in this file. Should be used\n"
     "     in combination with n_photons_to_skip\n"
     "\n"
     "Returns\n"
     "-------\n"
-    "data : tuple\n"
-    "       Return a tuple consisting of two arrays. The first array corresponds to the macro timestamps\n"
-    "       stored in the data file. The second array corresponds to the micro timestamps stored in the\n"
-    "       data file. Depending on the SSTT file version, the data file may or may not contain\n"
-    "       micro timestamps. If the data file does not contain any micro timestamps, the returned\n"
-    "       micro timestamp array is empty. In such cases, where the macro timestamps of the desired\n"
-    "       reference channel are available, the gen_micro_times() function can be used to generate\n"
-    "       the micro timestamps",
+	"py_macrotimes : list\n"
+	"		List of macro timestamps stored in the data file.\n"
+	"py_microtimes : list\n"
+	"		List of micro timestamps stored in the data file.\n"
+	"		Only legacy SSTT files (v1) save the microtimes\n"
+	"		explicitely, so this list is likely to be empty.\n"
+	"		Generate the microtimes using the\n"
+	"		gen_micro_times() function.\n"
+	"n_overflows : integer\n"
+	"		Number of overflow events encountered while\n"
+	"		reading the data file. Use this information,\n"
+	" 		if desired, in subsequent calls to\n"
+	"		read_sstt_data(), to read in only a portion\n"
+	"		of the data file.",
     py::arg("filepath"),py::arg("n_photons_to_skip")=0,py::arg("n_overflow_events")=0);
 
     m.def("correlate_fcs", [](const py::array_t<int64_t,py::array::c_style|py::array::forcecast>& bin_edges,
@@ -222,7 +203,29 @@ PYBIND11_MODULE(libtimetag, m) {
         }
 
         return py::array(ret_size, ret, capsule);
-    }, "Correlates two arrays. This function is optimised for the case where there are many photons per bin, e.g. in Fluorescence Correlation Spectroscopy",
+    }, "Cross-correlates two arrays. Optimized for cases with many photons per bin.\n"
+    "\n"
+	"Correlates two arrays containing timestamped data. Optimized for cases.\n"
+	"where there will be many photons per bin in the correlation histogram,\n"
+	"or when correlating datasets over large lag times (e.g., up to seconds).\n"
+	"Useful for Fluorescence Correlation Spectroscopy (FCS) data sets.\n"
+	"Note that the output of this function should be normalized using the\n"
+	"norm_corr() function."
+	"\n"
+    "Parameters\n"
+    "----------\n"
+    "bin_edges : list\n"
+    "     Edges for the correlation histogram. Size of bins is allowed to vary\n"
+	"  	  within the histogram.\n"
+    "left_array : list\n"
+    "     List containing the timestamps of the 'left' dataset\n"
+    "right_array : uint64_t\n"
+    "     List containing the timestamps of the 'right' dataset\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "data : list\n"
+    "     List containing the non-normalized cross-correlation histogram.",
     py::arg("bin_edges"), py::arg("left_array"), py::arg("right_array"));
 
     m.def("correlate_lin", [](const py::array_t<int64_t,py::array::c_style|py::array::forcecast>& bin_edges,
@@ -261,7 +264,28 @@ PYBIND11_MODULE(libtimetag, m) {
         }
 
         return ret;
-    }, "Correlates two arrays. This function is optimised for the case where there are few photons per bin (e.g. in an anti-bunching curve). The size of each bin should be unity (otherwise an exception will be thrown).",
+    }, "Cross-correlates two arrays. Optimized for small lag times/few photons per bin.\n"
+    "\n"
+	"Cross-correlates two arrays containing timestamped data. Optimized for cases.\n"
+	"where there will be few photons per bin in the correlation histogram,\n"
+	"or when correlating datasets over short lag times.\n"
+	"Useful for generating cross-correlation functions to check for anti-bunching.\n"
+	"Note that the output of this function is not normalized. If normalization is\n"
+	"desired, use the norm_corr() function."
+	"\n"
+    "Parameters\n"
+    "----------\n"
+    "bin_edges : list\n"
+    "     Edges for the correlation histogram. Bin width must be unity.\n"
+    "left_array : list\n"
+    "     List containing the timestamps of the 'left' dataset\n"
+    "right_array : uint64_t\n"
+    "     List containing the timestamps of the 'right' dataset\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "data : list\n"
+    "     List containing the non-normalized cross-correlation histogram.",
     py::arg("bin_edges"), py::arg("left_array"), py::arg("right_array"));
 
     m.def("norm_corr", [](const py::array_t<int64_t,py::array::c_style|py::array::forcecast>& data,
@@ -298,38 +322,46 @@ PYBIND11_MODULE(libtimetag, m) {
         }
 
         return py::array(data.size(), ret, capsule);
-    }, "Normalises a photon correlation histogram, returns the normalised histogram.",
+    }, "Normalizes a cross-correlation histogram\n"
+    "\n"
+	"Cross-correlation functions generated using\n"
+	"correlate_fcs() and correlate_lin() are not normalized.\n"
+	"This means that the correlation amplitudes are effectively\n"
+	"arbitrary. This function normalizes cross-correlation\n"
+	"functions, so that for two completely non-correlated\n"
+	"signals the correlation amplitude is unity, and for lag\n"
+	"times where there are no photon counts, the correlation\n"
+	"amplitude is zero. Correlation curves will then tend to\n"
+	"zero in the case of anti-bunching, and to unity for\n"
+	"long lag times. Some fields use a different definition\n"
+	"of the cross-correlation function, where it tends to\n"
+	"zero for non-correlated signals, and to -1 for lag\n"
+	"times where there is no signal. If this convention\n"
+	"is desired, simply subtract 1 from the values returned\n"
+	"by this function.\n"
+	"\n"
+    "Parameters\n"
+    "----------\n"
+    "data : list\n"
+    "	Non-normalized cross-correlation histogram.\n"
+    "bin_edges : list\n"
+    " 	The bin edges of the cross-correlation histogram\n"
+	"T_min : positive integer\n"
+	"	Time of experiment start, or minimum timestamp\n"
+	"	value within the entire dataset.\n"
+	"T_max : positive integer\n"
+	"	Time of experiment end, or maximum timestamp\n"
+	"	value within the entire dataset.\n"
+	"n_photons_left_channel : positive integer\n"
+	"	Number of timestamps in the 'left' data set."
+	"n_photons_right_channel : positive integer\n"
+	"	Number of timestamps in the 'right' data set."
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "data : list\n"
+    "     List containing the normalized cross-correlation histogram.",
        py::arg("data"), py::arg("bin_edges"), py::arg("T_min"), py::arg("T_max"), py::arg("n_photons_left_chan"), py::arg("n_photons_right_chan"));
-
-    m.def("bindata_interp_seq", [](const py::array_t<int64_t,py::array::c_style|py::array::forcecast>& bin_edges,
-                                    const py::array_t<int64_t,py::array::c_style|py::array::forcecast>& data) {
-        if (bin_edges.size() <= 1) {
-            throw std::runtime_error("bin_edges should have a minimum length of two");
-        }
-
-        int64_t* ret = new int64_t[bin_edges.size() - 1]{0};
-        auto capsule = py::capsule(ret, [](void *v) { delete[] (int64_t*)v; });
-
-        int success = bindata_interp_seq(bin_edges.data(0),
-                                        bin_edges.size(),
-                                        data.data(0),
-                                        data.size(),
-                                        ret,
-                                        bin_edges.size() - 1);
-
-        if (success == 1) {
-            throw std::runtime_error("Internal error #1");
-        } else if (success == 2) {
-            throw std::runtime_error("bin_edges should have a minimum length of two");
-        } else if (success == 3) {
-            throw std::runtime_error("Internal error #3");
-        } else if (success != 0) {
-            throw std::runtime_error("Unknown error");
-        }
-
-        return py::array(bin_edges.size() - 1, ret, capsule);
-    }, "Bins the supplied data into the supplied histogram. This function is optimized for linear bins (e.g. with constant size) and might perform poorly on bins with variable size (e.g. logarithmic).",
-    py::arg("bin_edges"), py::arg("data"));
 
     m.def("rebin", [](const py::array_t<int64_t,py::array::c_style|py::array::forcecast>& data,
                       uint64_t new_bin_size) -> py::array {
@@ -359,7 +391,25 @@ PYBIND11_MODULE(libtimetag, m) {
 
 
         return py::array(ret_size, ret, capsule);
-    }, "Returns a new histogram wherein each new bin corresponds to n original bins (n >= 1). Any original bins which together do not make up an entire new bin will be dropped",
+    }, "Rebins a histogram\n"
+    "\n"
+	"Returns a new histogram in which the value of each new bin\n"
+	"is the sum of n original bins (n >= 1). Any original bins\n"
+	"that together do not make up an entire new bin will be\n"
+	"discarded."
+	"\n"
+    "Parameters\n"
+    "----------\n"
+    "data : list\n"
+    "	Original histogram\n"
+    "new_bin_size : positive integer\n"
+    " 	New bin width, i.e., how many original bins are\n"
+	"	combined to make a bin in the new histogram\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "ret : list\n"
+    "     Re-binned histogram.",
     py::arg("histogram"), py::arg("n"));
 
     m.def("rebin_bin_edges", [](const py::array_t<int64_t,py::array::c_style|py::array::forcecast>& bin_edges, uint64_t new_bin_size) -> py::array {
@@ -398,7 +448,26 @@ PYBIND11_MODULE(libtimetag, m) {
         }
 
         return py::array(ret_size, ret, capsule);
-    }, "Returns new bin edges, wherein each new bin corresponds to n original bins (n >= 1). Any original bins which together do not make up an entire new bin will be dropped.",
+    }, "Rebins histogram bin edges\n"
+    "\n"
+	"Returns the bin edges of a histogram\n"
+	"for which the value of each new bin\n"
+	"is the sum of n original bins (n >= 1). Any original bins\n"
+	"that together do not make up an entire new bin will be\n"
+	"discarded."
+	"\n"
+    "Parameters\n"
+    "----------\n"
+    "bin_edges : list\n"
+    "	Original bin edges\n"
+    "new_bin_size : positive integer\n"
+    " 	New bin width, i.e., how many original bins are\n"
+	"	combined to make a bin in the new histogram\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "ret : list\n"
+    "     Re-binned bin edges.",
     py::arg("bin_edges"), py::arg("n"));
 }
 
